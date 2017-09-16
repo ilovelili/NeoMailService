@@ -1,0 +1,13 @@
+{
+    "mongodb": {
+        "host": "127.0.0.1:27017",
+        "database": "neo"
+    },
+    "mail": {
+        "receiver": "xxx@gmail.com,yyy@gmail.com",
+        "sender": {
+            "account": "zzz@gmail.com",
+            "password": "xxx"
+        }        
+    }
+}
