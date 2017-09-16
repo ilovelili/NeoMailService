@@ -39,7 +39,6 @@ func (accessor *RateAccessor) Description() string {
 
 // GetLatestRateInfo list latest rate info
 func (accessor *RateAccessor) GetLatestRateInfo(db interface{}) (*Rate, error) {
-	rate := &Rate{}
 	var neo *Neo
 	var btc *Btc
 	collection := db.(*mgo.Database).C("rates")
@@ -48,14 +47,14 @@ func (accessor *RateAccessor) GetLatestRateInfo(db interface{}) (*Rate, error) {
 		return nil, err
 	}
 
-	rate.Neo = neo
-
 	collection = db.(*mgo.Database).C("btcrates")
 	err = collection.Find(nil).Sort("-date").One(&btc)
 	if err != nil {
 		return nil, err
 	}
 
-	rate.Btc = btc
-	return rate, nil
+	return &Rate{
+		Neo: neo,
+		Btc: btc,
+	}, nil
 }
