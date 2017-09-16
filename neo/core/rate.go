@@ -39,7 +39,7 @@ func (accessor *RateAccessor) Description() string {
 
 // GetLatestRateInfo list latest rate info
 func (accessor *RateAccessor) GetLatestRateInfo(db interface{}) (*Rate, error) {
-	var rate *Rate
+	rate := &Rate{}
 	var neo *Neo
 	var btc *Btc
 	collection := db.(*mgo.Database).C("rates")
