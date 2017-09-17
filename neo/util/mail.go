@@ -1,11 +1,9 @@
 package util
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"neo/config"
-	"neo/core"
 	"net/smtp"
 	"strings"
 )
@@ -61,26 +59,16 @@ func (mail *Mail) buildMessage() string {
 }
 
 // SendMail send mail when fails
-func SendMail(rate *core.Rate, config *config.Config) (err error) {
+func SendMail(config *config.Config, subject, body string) (err error) {
 	mail := Mail{}
 	mail.senderID = config.Mail.Sender.Account
 	mail.toIds = receivers
-	mail.subject = fmt.Sprintf("AgentSmith: Neo price is $%g now (%g percent %s)", rate.Neo.Usd, rate.Neo.UsdRate, resolveUpOrDown(rate.Neo.UsdRate))
-	body, err := json.Marshal(rate)
-	if err != nil {
-		return err
-	}
-	mail.body = string(body)
+	mail.subject = subject
+
+	mail.body = body
 	messageBody := mail.buildMessage()
 	smtpServer := SMTPServer{host: smtpServer, port: smtpPort, user: config.Sender.Account, password: config.Sender.Password}
 
 	log.Println("sending mail")
 	return smtp.SendMail(smtpServer.ServerName(), smtpServer.Auth(), mail.senderID, mail.toIds, []byte(messageBody))
-}
-
-func resolveUpOrDown(rate float32) string {
-	if rate > 0 {
-		return "up"
-	}
-	return "down"
 }

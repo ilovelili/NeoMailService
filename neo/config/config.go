@@ -46,8 +46,14 @@ type Mail struct {
 	Sender   `json:"sender"`
 }
 
+// AgentSmith agent smith mail handler
+type AgentSmith struct {
+	Threshold float32 `json:"threshold"`
+}
+
 // Config config entry
 type Config struct {
-	MongoDB `json:"mongodb"`
-	Mail    `json:"mail"`
+	MongoDB    `json:"mongodb"`
+	Mail       `json:"mail"`
+	AgentSmith `json:"agentsmith"`
 }
