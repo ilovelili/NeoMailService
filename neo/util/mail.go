@@ -1,13 +1,10 @@
 package util
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"log"
 	"neo/config"
 	"neo/core"
-	"net"
 	"net/smtp"
 	"strings"
 )
@@ -19,7 +16,7 @@ var (
 const (
 	// smtpServer SMTP server
 	smtpServer string = "smtp.gmail.com"
-	smtpPort   string = "465"
+	smtpPort   string = "587"
 )
 
 // Mail mail with sender, receivers, subject and body
@@ -67,7 +64,7 @@ func SendMail(rate *core.Rate, config *config.Config) (err error) {
 	mail := Mail{}
 	mail.senderID = config.Mail.Sender.Account
 	mail.toIds = receivers
-	mail.subject = fmt.Sprintf("AgentSmith: Neo price %g (%g)", rate.Neo.Usd, rate.Neo.UsdRate)
+	mail.subject = fmt.Sprintf("AgentSmith: Neo price is $%g now (%g percent %s)", rate.Neo.Usd, rate.Neo.UsdRate, resolveUpOrDown(rate.Neo.UsdRate))
 	body, err := json.Marshal(rate)
 	if err != nil {
 		return err
@@ -75,57 +72,13 @@ func SendMail(rate *core.Rate, config *config.Config) (err error) {
 	mail.body = string(body)
 	messageBody := mail.buildMessage()
 	smtpServer := SMTPServer{host: smtpServer, port: smtpPort, user: config.Sender.Account, password: config.Sender.Password}
-	serverName := smtpServer.ServerName()
 
-	// TLS config
-	host, _, _ := net.SplitHostPort(serverName)
-	tlsconfig := &tls.Config{
-		InsecureSkipVerify: true,
-		ServerName:         host,
+	return smtp.SendMail(smtpServer.ServerName(), smtpServer.Auth(), mail.senderID, mail.toIds, []byte(messageBody))
+}
+
+func resolveUpOrDown(rate float32) string {
+	if rate > 0 {
+		return "up"
 	}
-
-	conn, err := tls.Dial("tcp", serverName, tlsconfig)
-	defer conn.Close()
-	if err != nil {
-		log.Panic(err)
-	}
-
-	client, err := smtp.NewClient(conn, host)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	// Auth
-	if err = client.Auth(smtpServer.Auth()); err != nil {
-		log.Panic(err)
-	}
-
-	// add all from and to
-	if err = client.Mail(mail.senderID); err != nil {
-		log.Panic(err)
-	}
-
-	for _, k := range mail.toIds {
-		if err = client.Rcpt(k); err != nil {
-			log.Panic(err)
-		}
-	}
-
-	// Data
-	w, err := client.Data()
-	if err != nil {
-		log.Panic(err)
-	}
-
-	_, err = w.Write([]byte(messageBody))
-	if err != nil {
-		log.Panic(err)
-	}
-
-	err = w.Close()
-	if err != nil {
-		log.Panic(err)
-	}
-
-	return
+	return "down"
 }
