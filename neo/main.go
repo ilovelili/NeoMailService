@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"neo/config"
 	"neo/core"
 	"neo/dal"
@@ -28,6 +29,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	log.Println(rate)
 
 	util.SendMail(rate, conf)
 }

@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"neo/config"
 	"neo/core"
 	"net/smtp"
@@ -73,6 +74,7 @@ func SendMail(rate *core.Rate, config *config.Config) (err error) {
 	messageBody := mail.buildMessage()
 	smtpServer := SMTPServer{host: smtpServer, port: smtpPort, user: config.Sender.Account, password: config.Sender.Password}
 
+	log.Println("sending mail")
 	return smtp.SendMail(smtpServer.ServerName(), smtpServer.Auth(), mail.senderID, mail.toIds, []byte(messageBody))
 }
 
